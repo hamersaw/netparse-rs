@@ -1,6 +1,7 @@
-mod file;
+mod input;
+mod frame;
 
-pub use file::pcap::{PcapIterator, PcapPacket};
+pub use input::pcap::{PcapIterator, PcapPacket};
 
 use std::io::Read;
 

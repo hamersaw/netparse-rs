@@ -1,7 +1,8 @@
 use {get_u16, get_u32, get_i32};
+use frame::ieee_802_dot_11::IEEE802Dot11Frame;
 
 use std;
-use std::io::Read;
+use std::io::{Cursor, Read};
 use std::iter::Iterator;
 
 pub struct PcapIterator {
@@ -44,6 +45,7 @@ impl Iterator for PcapIterator {
     type Item = PcapPacket;
 
     fn next(&mut self) -> Option<Self::Item> {
+        //parse pcap header
         let (timestamp_secs, timestamp_usecs, included_length, original_length) = match self.read_pcap_header() {
             Ok(tuple) => tuple,
             Err(e) => {
@@ -52,12 +54,26 @@ impl Iterator for PcapIterator {
             },
         };
 
+        //read in data
         let mut buffer = vec![0; included_length as usize];
         if let Err(e) = self.input.read_exact(&mut buffer) {
             println!("ERROR: {}", e);
             return None;
         }
 
+        //parse frame
+        let mut cursor = Box::new(Cursor::new(buffer));
+        let frame = match IEEE802Dot11Frame::parse(cursor) {
+            Ok(frame) => frame,
+            Err(e) => {
+                println!("ERROR parsing frame: {}", e);
+                return None;
+            },
+        };
+
+        println!("FRAME: {:?}", frame);
+
+        //return pcap packet
         Some (
             PcapPacket {
                 timestamp_secs: timestamp_secs,
