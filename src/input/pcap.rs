@@ -1,5 +1,6 @@
 use {get_u16, get_u32, get_i32};
-use frame::ieee_802_dot_11::IEEE802Dot11Frame;
+use data_layer::DataLayerType;
+use data_layer::ieee_802_dot_11::IEEE802Dot11Frame;
 
 use std;
 use std::io::{Cursor, Read};
@@ -61,17 +62,21 @@ impl Iterator for PcapIterator {
             return None;
         }
 
-        //parse frame
         let mut cursor = Box::new(Cursor::new(buffer));
-        let frame = match IEEE802Dot11Frame::parse(cursor) {
-            Ok(frame) => frame,
-            Err(e) => {
-                println!("ERROR parsing frame: {}", e);
-                return None;
-            },
-        };
 
-        println!("FRAME: {:?}", frame);
+        //parse frame
+        let data_layer_type = match self.network {
+            105 => {
+                match IEEE802Dot11Frame::parse(cursor) {
+                    Ok(frame) => DataLayerType::IEEE802Dot11(frame),
+                    Err(e) => {
+                        println!("ERROR parsing frame: {}", e);
+                        return None;
+                    },
+                }
+            },
+            _ => unimplemented!(),
+        };
 
         //return pcap packet
         Some (
@@ -80,6 +85,7 @@ impl Iterator for PcapIterator {
                 timestamp_usecs: timestamp_usecs,
                 included_length: included_length,
                 original_length: original_length,
+                data_layer_type: data_layer_type,
             }
         )
     }
@@ -91,6 +97,7 @@ pub struct PcapPacket {
     pub timestamp_usecs: u32,
     pub included_length: u32,
     pub original_length: u32,
+    pub data_layer_type: DataLayerType,
 }
 
 #[cfg(test)]
