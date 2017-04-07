@@ -1,0 +1,6 @@
+[package]
+name = "native-pcap"
+version = "0.1.0"
+authors = ["Dan Rammer <hamersaw@bushpath.com>"]
+
+[dependencies]
