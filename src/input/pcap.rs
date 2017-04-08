@@ -1,4 +1,5 @@
-use {get_u16, get_u32, get_i32};
+use bytes::{Buf, IntoBuf, LittleEndian};
+
 use data_layer::DataLayerType;
 use data_layer::ieee_802_dot_11::IEEE802Dot11Frame;
 
@@ -19,26 +20,22 @@ pub struct PcapIterator {
 
 impl PcapIterator {
     pub fn new(mut input: Box<Read>) -> Result<PcapIterator, std::io::Error> {
+        let mut global_header_bytes = vec![0; 24];
+        try!(input.read_exact(&mut global_header_bytes));
+        let mut global_header_buf = global_header_bytes.into_buf();
+
         Ok(
             PcapIterator {
-                magic_number: try!(get_u32(&mut input)),
-                version_major: try!(get_u16(&mut input)),
-                version_minor: try!(get_u16(&mut input)),
-                this_zone: try!(get_i32(&mut input)),
-                sig_figs: try!(get_u32(&mut input)),
-                snap_len: try!(get_u32(&mut input)),
-                network: try!(get_u32(&mut input)),
+                magic_number: global_header_buf.get_u32::<LittleEndian>(),
+                version_major: global_header_buf.get_u16::<LittleEndian>(),
+                version_minor: global_header_buf.get_u16::<LittleEndian>(),
+                this_zone: global_header_buf.get_i32::<LittleEndian>(),
+                sig_figs: global_header_buf.get_u32::<LittleEndian>(),
+                snap_len: global_header_buf.get_u32::<LittleEndian>(),
+                network: global_header_buf.get_u32::<LittleEndian>(),
                 input: input,
             }
         )
-    }
-
-    fn read_pcap_header(&mut self) -> Result<(u32, u32, u32, u32), std::io::Error> {
-        let timestamp_secs = try!(get_u32(&mut self.input));
-        let timestamp_usecs = try!(get_u32(&mut self.input));
-        let included_length = try!(get_u32(&mut self.input));
-        let original_length = try!(get_u32(&mut self.input));
-        Ok((timestamp_secs, timestamp_usecs, included_length, original_length))
     }
 }
 
@@ -47,27 +44,31 @@ impl Iterator for PcapIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         //parse pcap header
-        let (timestamp_secs, timestamp_usecs, included_length, original_length) = match self.read_pcap_header() {
-            Ok(tuple) => tuple,
-            Err(e) => {
-                println!("ERROR reading pcap header: {}", e);
-                return None;
-            },
-        };
-
-        //read in data
-        let mut buffer = vec![0; included_length as usize];
-        if let Err(e) = self.input.read_exact(&mut buffer) {
-            println!("ERROR: {}", e);
+        let mut pcap_header_bytes = vec![0; 16];
+        if let Err(e) = self.input.read_exact(&mut pcap_header_bytes) {
+            println!("ERROR pcap header: {}", e);
             return None;
         }
 
-        let mut cursor = Box::new(Cursor::new(buffer));
+        let mut pcap_header_buf = pcap_header_bytes.into_buf();
+        let timestamp_secs = pcap_header_buf.get_u32::<LittleEndian>();
+        let timestamp_usecs = pcap_header_buf.get_u32::<LittleEndian>();
+        let included_length = pcap_header_buf.get_u32::<LittleEndian>();
+        let original_length = pcap_header_buf.get_u32::<LittleEndian>();
+
+        //read in data
+        let mut data_bytes = vec![0; included_length as usize];
+        if let Err(e) = self.input.read_exact(&mut data_bytes) {
+            println!("ERROR pcap data: {}", e);
+            return None;
+        }
+
+        let mut cursor = Cursor::new(data_bytes);
 
         //parse frame
         let data_layer_type = match self.network {
             105 => {
-                match IEEE802Dot11Frame::parse(cursor) {
+                match IEEE802Dot11Frame::parse(&mut cursor) {
                     Ok(frame) => DataLayerType::IEEE802Dot11(frame),
                     Err(e) => {
                         println!("ERROR parsing frame: {}", e);
