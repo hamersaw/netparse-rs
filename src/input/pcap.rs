@@ -63,22 +63,6 @@ impl Iterator for PcapIterator {
             return None;
         }
 
-        let mut cursor = Cursor::new(data_bytes);
-
-        //parse frame
-        let data_layer_type = match self.network {
-            105 => {
-                match IEEE802Dot11Frame::parse(&mut cursor) {
-                    Ok(frame) => DataLayerType::IEEE802Dot11(frame),
-                    Err(e) => {
-                        println!("ERROR parsing frame: {}", e);
-                        return None;
-                    },
-                }
-            },
-            _ => unimplemented!(),
-        };
-
         //return pcap packet
         Some (
             PcapPacket {
@@ -86,7 +70,8 @@ impl Iterator for PcapIterator {
                 timestamp_usecs: timestamp_usecs,
                 included_length: included_length,
                 original_length: original_length,
-                data_layer_type: data_layer_type,
+                data_bytes: data_bytes,
+                network: self.network,
             }
         )
     }
@@ -98,37 +83,17 @@ pub struct PcapPacket {
     pub timestamp_usecs: u32,
     pub included_length: u32,
     pub original_length: u32,
-    pub data_layer_type: DataLayerType,
+    data_bytes: Vec<u8>,
+    network: u32, //necessary for parsing
 }
 
-#[cfg(test)]
-mod tests {
-    use super::PcapIterator;
+impl PcapPacket {
+    pub fn parse(&mut self) -> Result<DataLayerType, std::io::Error> {
+        let mut cursor = Cursor::new(&self.data_bytes);
 
-    use std::fs::File;
-
-    #[test]
-    fn test_wifi() {
-        let file = match File::open("examples/802.11-01.cap") {
-            Ok(file) => file,
-            Err(e) => panic!("{}", e),
-        };
-
-        let mut pcap_iter = match PcapIterator::new(Box::new(file)) {
-            Ok(pcap_iter) => pcap_iter,
-            Err(e) => panic!("{}", e),
-        };
-
-        println!("magic_number: {}", pcap_iter.magic_number);
-        println!("version_major: {}", pcap_iter.version_major);
-        println!("version_minor: {}", pcap_iter.version_minor);
-        println!("this_zone: {}", pcap_iter.this_zone);
-        println!("sig_figs: {}", pcap_iter.sig_figs);
-        println!("snap_len: {}", pcap_iter.snap_len);
-        println!("network: {}", pcap_iter.network);
-
-        for packet in pcap_iter {
-            println!("{:?}", packet);
+        match self.network {
+            105 => Ok(DataLayerType::IEEE802Dot11(try!(IEEE802Dot11Frame::new(&mut cursor)))),
+            _ => unimplemented!(),
         }
     }
 }

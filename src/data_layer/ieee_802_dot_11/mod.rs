@@ -24,11 +24,12 @@ pub struct IEEE802Dot11Frame {
     pub more_data: bool,
     pub wep: bool,
     pub order: bool,
-    pub frame_type: IEEE802Dot11FrameType,
+    data_bytes: Vec<u8>,
 }
 
 impl IEEE802Dot11Frame {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<IEEE802Dot11Frame, std::io::Error> {
+    pub fn new(cursor: &mut Cursor<&Vec<u8>>) -> Result<IEEE802Dot11Frame, std::io::Error> {
+        //parse frame control
         let frame_control = cursor.get_u8();
         let protocol_version = frame_control & 3u8;
         let packet_type = (frame_control & 12u8) >> 2;
@@ -44,45 +45,8 @@ impl IEEE802Dot11Frame {
         let wep = (frame_control_flags & 64) == 64;
         let order = (frame_control_flags & 128) == 128;
 
-
-        let frame_type = match (packet_type, packet_subtype) {
-            (0, 0) => IEEE802Dot11FrameType::MgmtAssociationRequest(try!(MgmtAssociationRequest::parse(cursor))),
-            (0, 1) => IEEE802Dot11FrameType::MgmtAssociationResponse(try!(MgmtAssociationResponse::parse(cursor))),
-            (0, 2) => IEEE802Dot11FrameType::MgmtReassociationRequest(try!(MgmtReassociationRequest::parse(cursor))),
-            (0, 3) => IEEE802Dot11FrameType::MgmtReassociationResponse(try!(MgmtReassociationResponse::parse(cursor))),
-            (0, 4) => IEEE802Dot11FrameType::MgmtProbeRequest(try!(MgmtProbeRequest::parse(cursor))),
-            (0, 5) => IEEE802Dot11FrameType::MgmtProbeResponse(try!(MgmtProbeResponse::parse(cursor))),
-            (0, 8) => IEEE802Dot11FrameType::MgmtBeacon(try!(MgmtBeacon::parse(cursor))),
-            (0, 9) => IEEE802Dot11FrameType::MgmtAtim(try!(MgmtAtim::parse(cursor))),
-            (0, 10) => IEEE802Dot11FrameType::MgmtDisassociation(try!(MgmtDisassociation::parse(cursor))),
-            (0, 11) => IEEE802Dot11FrameType::MgmtAuthentication(try!(MgmtAuthentication::parse(cursor))),
-            (0, 12) => IEEE802Dot11FrameType::MgmtDeauthentication(try!(MgmtDeauthentication::parse(cursor))),
-            (0, 13) => IEEE802Dot11FrameType::MgmtAction(try!(MgmtAction::parse(cursor))),
-            (1, 8) => IEEE802Dot11FrameType::CtrlBlockAckRequest(try!(CtrlBlockAckRequest::parse(cursor))),
-            (1, 9) => IEEE802Dot11FrameType::CtrlBlockAck(try!(CtrlBlockAck::parse(cursor))),
-            (1, 10) => IEEE802Dot11FrameType::CtrlPowerSavePoll(try!(CtrlPowerSavePoll::parse(cursor))),
-            (1, 11) => IEEE802Dot11FrameType::CtrlRequestToSend(try!(CtrlRequestToSend::parse(cursor))),
-            (1, 12) => IEEE802Dot11FrameType::CtrlClearToSend(try!(CtrlClearToSend::parse(cursor))),
-            (1, 13) => IEEE802Dot11FrameType::CtrlAck(try!(CtrlAck::parse(cursor))),
-            (1, 14) => IEEE802Dot11FrameType::CtrlCfEnd(try!(CtrlCfEnd::parse(cursor))),
-            (1, 15) => IEEE802Dot11FrameType::CtrlCfEndPlusCfAck(try!(CtrlCfEndPlusCfAck::parse(cursor))),
-            (2, 0) => IEEE802Dot11FrameType::Data(try!(Data::parse(cursor))),
-            (2, 1) => IEEE802Dot11FrameType::DataPlusCfAck(try!(DataPlusCfAck::parse(cursor))),
-            (2, 2) => IEEE802Dot11FrameType::DataPlusCfPoll(try!(DataPlusCfPoll::parse(cursor))),
-            (2, 3) => IEEE802Dot11FrameType::DataPlusCfAckPlusCfPoll(try!(DataPlusCfAckPlusCfPoll::parse(cursor))),
-            (2, 4) => IEEE802Dot11FrameType::DataNull(try!(DataNull::parse(cursor))),
-            (2, 5) => IEEE802Dot11FrameType::DataCfAck(try!(DataCfAck::parse(cursor))),
-            (2, 6) => IEEE802Dot11FrameType::DataCfPoll(try!(DataCfPoll::parse(cursor))),
-            (2, 7) => IEEE802Dot11FrameType::DataCfAckPlusCfPoll(try!(DataCfAckPlusCfPoll::parse(cursor))),
-            (2, 8) => IEEE802Dot11FrameType::DataQosData(try!(DataQosData::parse(cursor))),
-            (2, 9) => IEEE802Dot11FrameType::DataQosDataPlusCfAck(try!(DataQosDataPlusCfAck::parse(cursor))),
-            (2, 10) => IEEE802Dot11FrameType::DataQosDataPlusCfPoll(try!(DataQosDataPlusCfPoll::parse(cursor))),
-            (2, 11) => IEEE802Dot11FrameType::DataQosDataPlusCfAckPlusCfPoll(try!(DataQosDataPlusCfAckPlusCfPoll::parse(cursor))),
-            (2, 12) => IEEE802Dot11FrameType::DataQosNull(try!(DataQosNull::parse(cursor))),
-            (2, 14) => IEEE802Dot11FrameType::DataQosPlusCfPollNoData(try!(DataQosPlusCfPollNoData::parse(cursor))),
-            (2, 15) => IEEE802Dot11FrameType::DataQosPlusCfAckNoData(try!(DataQosPlusCfAckNoData::parse(cursor))),
-            _ => return Err(std::io::Error::new(std::io::ErrorKind::Other, "malformed frame")),
-        };
+        //gather bytes
+        let data_bytes = cursor.collect();
 
         Ok(
             IEEE802Dot11Frame {
@@ -97,9 +61,51 @@ impl IEEE802Dot11Frame {
                 more_data: more_data,
                 wep: wep,
                 order: order,
-                frame_type: frame_type,
+                data_bytes: data_bytes,
             }
         )
+    }
+
+    pub fn parse(&mut self) -> Result<IEEE802Dot11FrameType, std::io::Error> {
+        let mut cursor = Cursor::new(&self.data_bytes);
+        match (self.packet_type, self.packet_subtype) {
+            (0, 0) => Ok(IEEE802Dot11FrameType::MgmtAssociationRequest(try!(MgmtAssociationRequest::parse(&mut cursor)))),
+            (0, 1) => Ok(IEEE802Dot11FrameType::MgmtAssociationResponse(try!(MgmtAssociationResponse::parse(&mut cursor)))),
+            (0, 2) => Ok(IEEE802Dot11FrameType::MgmtReassociationRequest(try!(MgmtReassociationRequest::parse(&mut cursor)))),
+            (0, 3) => Ok(IEEE802Dot11FrameType::MgmtReassociationResponse(try!(MgmtReassociationResponse::parse(&mut cursor)))),
+            (0, 4) => Ok(IEEE802Dot11FrameType::MgmtProbeRequest(try!(MgmtProbeRequest::parse(&mut cursor)))),
+            (0, 5) => Ok(IEEE802Dot11FrameType::MgmtProbeResponse(try!(MgmtProbeResponse::parse(&mut cursor)))),
+            (0, 8) => Ok(IEEE802Dot11FrameType::MgmtBeacon(try!(MgmtBeacon::parse(&mut cursor)))),
+            (0, 9) => Ok(IEEE802Dot11FrameType::MgmtAtim(try!(MgmtAtim::parse(&mut cursor)))),
+            (0, 10) => Ok(IEEE802Dot11FrameType::MgmtDisassociation(try!(MgmtDisassociation::parse(&mut cursor)))),
+            (0, 11) => Ok(IEEE802Dot11FrameType::MgmtAuthentication(try!(MgmtAuthentication::parse(&mut cursor)))),
+            (0, 12) => Ok(IEEE802Dot11FrameType::MgmtDeauthentication(try!(MgmtDeauthentication::parse(&mut cursor)))),
+            (0, 13) => Ok(IEEE802Dot11FrameType::MgmtAction(try!(MgmtAction::parse(&mut cursor)))),
+            (1, 8) => Ok(IEEE802Dot11FrameType::CtrlBlockAckRequest(try!(CtrlBlockAckRequest::parse(&mut cursor)))),
+            (1, 9) => Ok(IEEE802Dot11FrameType::CtrlBlockAck(try!(CtrlBlockAck::parse(&mut cursor)))),
+            (1, 10) => Ok(IEEE802Dot11FrameType::CtrlPowerSavePoll(try!(CtrlPowerSavePoll::parse(&mut cursor)))),
+            (1, 11) => Ok(IEEE802Dot11FrameType::CtrlRequestToSend(try!(CtrlRequestToSend::parse(&mut cursor)))),
+            (1, 12) => Ok(IEEE802Dot11FrameType::CtrlClearToSend(try!(CtrlClearToSend::parse(&mut cursor)))),
+            (1, 13) => Ok(IEEE802Dot11FrameType::CtrlAck(try!(CtrlAck::parse(&mut cursor)))),
+            (1, 14) => Ok(IEEE802Dot11FrameType::CtrlCfEnd(try!(CtrlCfEnd::parse(&mut cursor)))),
+            (1, 15) => Ok(IEEE802Dot11FrameType::CtrlCfEndPlusCfAck(try!(CtrlCfEndPlusCfAck::parse(&mut cursor)))),
+            (2, 0) => Ok(IEEE802Dot11FrameType::Data(try!(Data::parse(&mut cursor)))),
+            (2, 1) => Ok(IEEE802Dot11FrameType::DataPlusCfAck(try!(DataPlusCfAck::parse(&mut cursor)))),
+            (2, 2) => Ok(IEEE802Dot11FrameType::DataPlusCfPoll(try!(DataPlusCfPoll::parse(&mut cursor)))),
+            (2, 3) => Ok(IEEE802Dot11FrameType::DataPlusCfAckPlusCfPoll(try!(DataPlusCfAckPlusCfPoll::parse(&mut cursor)))),
+            (2, 4) => Ok(IEEE802Dot11FrameType::DataNull(try!(DataNull::parse(&mut cursor)))),
+            (2, 5) => Ok(IEEE802Dot11FrameType::DataCfAck(try!(DataCfAck::parse(&mut cursor)))),
+            (2, 6) => Ok(IEEE802Dot11FrameType::DataCfPoll(try!(DataCfPoll::parse(&mut cursor)))),
+            (2, 7) => Ok(IEEE802Dot11FrameType::DataCfAckPlusCfPoll(try!(DataCfAckPlusCfPoll::parse(&mut cursor)))),
+            (2, 8) => Ok(IEEE802Dot11FrameType::DataQosData(try!(DataQosData::parse(&mut cursor)))),
+            (2, 9) => Ok(IEEE802Dot11FrameType::DataQosDataPlusCfAck(try!(DataQosDataPlusCfAck::parse(&mut cursor)))),
+            (2, 10) => Ok(IEEE802Dot11FrameType::DataQosDataPlusCfPoll(try!(DataQosDataPlusCfPoll::parse(&mut cursor)))),
+            (2, 11) => Ok(IEEE802Dot11FrameType::DataQosDataPlusCfAckPlusCfPoll(try!(DataQosDataPlusCfAckPlusCfPoll::parse(&mut cursor)))),
+            (2, 12) => Ok(IEEE802Dot11FrameType::DataQosNull(try!(DataQosNull::parse(&mut cursor)))),
+            (2, 14) => Ok(IEEE802Dot11FrameType::DataQosPlusCfPollNoData(try!(DataQosPlusCfPollNoData::parse(&mut cursor)))),
+            (2, 15) => Ok(IEEE802Dot11FrameType::DataQosPlusCfAckNoData(try!(DataQosPlusCfAckNoData::parse(&mut cursor)))),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "malformed frame")),
+        }
     }
 }
 
