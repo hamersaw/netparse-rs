@@ -2,24 +2,20 @@ extern crate bytes;
 
 use bytes::{BigEndian, Buf, LittleEndian};
 
-mod data_layer;
+mod frame;
 mod input;
 
-pub use input::pcap::{PcapIterator, PcapPacket};
-
-use std::iter::Iterator;
+pub use input::pcap::{PcapIterator, PcapBlock};
 
 #[cfg(test)]
 mod tests {
-    use data_layer::DataLayerType;
-    use data_layer::ieee_802_dot_11::IEEE802Dot11FrameType;
     use input::pcap::PcapIterator;
 
     use std::fs::File;
 
     #[test]
     fn test_wifi() {
-        let file = match File::open("examples/802.11-01.cap") {
+        let file = match File::open("examples/802.11-02.cap") {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
@@ -37,23 +33,14 @@ mod tests {
         println!("snap_len: {}", pcap_iter.snap_len);
         println!("network: {}", pcap_iter.network);
 
-        for mut packet in pcap_iter {
-            //println!("PCAP: {:?}", packet);
-            match packet.parse() {
-                Ok(DataLayerType::IEEE802Dot11(mut frame)) => {
-                    //println!("802.11: {:?}", frame);
-
-                    match frame.parse() {
-                        Ok(IEEE802Dot11FrameType::CtrlBlockAck(message)) => println!("CTRL_BLOCK_ACK: {:?}", message),
-                        Ok(IEEE802Dot11FrameType::CtrlClearToSend(message)) => println!("CTRL_CLEAR_TO_SEND: {:?}", message),
-                        Ok(IEEE802Dot11FrameType::MgmtBeacon(message)) => println!("MGMT_BEACON: {:?}", message),
-                        Ok(IEEE802Dot11FrameType::MgmtDeauthentication(message)) => println!("MGMT_DEAUTHENTICATION: {:?}", message),
-                        _ => {},
-                    }
-                },
+        loop {
+            let pcap_block = match pcap_iter.next() {
+                Ok(Some(pcap_block)) => pcap_block,
+                Ok(None) => break,
                 Err(e) => panic!("{}", e),
-                _ => {},
-            }
+            };
+
+            println!("{:?}", pcap_block);
         }
     }
 }

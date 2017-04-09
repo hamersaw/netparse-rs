@@ -8,7 +8,7 @@ pub struct MgmtAssociationRequest {
 }
 
 impl MgmtAssociationRequest {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtAssociationRequest, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtAssociationRequest, std::io::Error> {
         unimplemented!();
     }
 }
@@ -18,7 +18,7 @@ pub struct MgmtAssociationResponse {
 }
 
 impl MgmtAssociationResponse{
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtAssociationResponse, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtAssociationResponse, std::io::Error> {
         unimplemented!();
     }
 }
@@ -28,7 +28,7 @@ pub struct MgmtReassociationRequest {
 }
 
 impl MgmtReassociationRequest {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtReassociationRequest, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtReassociationRequest, std::io::Error> {
         unimplemented!();
     }
 }
@@ -38,7 +38,7 @@ pub struct MgmtReassociationResponse {
 }
 
 impl MgmtReassociationResponse {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtReassociationResponse, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtReassociationResponse, std::io::Error> {
         unimplemented!();
     }
 }
@@ -48,7 +48,7 @@ pub struct MgmtProbeRequest {
 }
 
 impl MgmtProbeRequest {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtProbeRequest, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtProbeRequest, std::io::Error> {
         unimplemented!();
     }
 }
@@ -58,7 +58,7 @@ pub struct MgmtProbeResponse {
 }
 
 impl MgmtProbeResponse {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtProbeResponse, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtProbeResponse, std::io::Error> {
         unimplemented!();
     }
 }
@@ -74,7 +74,7 @@ pub struct MgmtBeacon {
 }
 
 impl MgmtBeacon {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtBeacon, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtBeacon, std::io::Error> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -110,7 +110,7 @@ pub struct MgmtAtim {
 }
 
 impl MgmtAtim {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtAtim, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtAtim, std::io::Error> {
         unimplemented!();
     }
 }
@@ -120,7 +120,7 @@ pub struct MgmtDisassociation {
 }
 
 impl MgmtDisassociation {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtDisassociation, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtDisassociation, std::io::Error> {
         unimplemented!();
     }
 }
@@ -130,7 +130,7 @@ pub struct MgmtAuthentication {
 }
 
 impl MgmtAuthentication {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtAuthentication, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtAuthentication, std::io::Error> {
         unimplemented!();
     }
 }
@@ -146,7 +146,7 @@ pub struct MgmtDeauthentication {
 }
 
 impl MgmtDeauthentication {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtDeauthentication, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtDeauthentication, std::io::Error> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -182,7 +182,7 @@ pub struct MgmtAction {
 }
 
 impl MgmtAction {
-    pub fn parse(cursor: &mut Cursor<&Vec<u8>>) -> Result<MgmtAction, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<MgmtAction, std::io::Error> {
         unimplemented!();
     }
 }
