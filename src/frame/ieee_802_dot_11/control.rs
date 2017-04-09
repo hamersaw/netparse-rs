@@ -18,7 +18,7 @@ impl CtrlBlockAckRequest {
         let mut transmitter_address = [0; 6];
         try!(cursor.read_exact(&mut transmitter_address));
 
-        //TODO parse block ack request type
+        //TODO parse block ack request type (and subsequent fields)
 
         Ok(
             CtrlBlockAckRequest {
@@ -42,7 +42,7 @@ impl CtrlBlockAck {
         let mut receiver_address = [0; 6];
         try!(cursor.read_exact(&mut receiver_address));
 
-        //TODO complete
+        //TODO parse block ack type (and subsequent fields)
 
         Ok(
             CtrlBlockAck {

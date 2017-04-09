@@ -52,11 +52,11 @@ impl IEEE802Dot11Frame {
             (0, 3) => IEEE802Dot11FrameType::MgmtReassociationResponse(try!(MgmtReassociationResponse::parse(cursor))),
             (0, 4) => IEEE802Dot11FrameType::MgmtProbeRequest(try!(MgmtProbeRequest::parse(cursor))),
             (0, 5) => IEEE802Dot11FrameType::MgmtProbeResponse(try!(MgmtProbeResponse::parse(cursor))),
-            (0, 8) => IEEE802Dot11FrameType::MgmtBeacon(try!(MgmtBeacon::parse(cursor))),
+            (0, 8) => IEEE802Dot11FrameType::MgmtBeacon(try!(MgmtBeacon::parse(cursor, to_ds, from_ds))),
             (0, 9) => IEEE802Dot11FrameType::MgmtAtim(try!(MgmtAtim::parse(cursor))),
             (0, 10) => IEEE802Dot11FrameType::MgmtDisassociation(try!(MgmtDisassociation::parse(cursor))),
             (0, 11) => IEEE802Dot11FrameType::MgmtAuthentication(try!(MgmtAuthentication::parse(cursor))),
-            (0, 12) => IEEE802Dot11FrameType::MgmtDeauthentication(try!(MgmtDeauthentication::parse(cursor))),
+            (0, 12) => IEEE802Dot11FrameType::MgmtDeauthentication(try!(MgmtDeauthentication::parse(cursor, to_ds, from_ds))),
             (0, 13) => IEEE802Dot11FrameType::MgmtAction(try!(MgmtAction::parse(cursor))),
             (1, 8) => IEEE802Dot11FrameType::CtrlBlockAckRequest(try!(CtrlBlockAckRequest::parse(cursor))),
             (1, 9) => IEEE802Dot11FrameType::CtrlBlockAck(try!(CtrlBlockAck::parse(cursor))),
@@ -140,4 +140,34 @@ pub enum IEEE802Dot11FrameType {
     DataQosNull(DataQosNull),
     DataQosPlusCfPollNoData(DataQosPlusCfPollNoData),
     DataQosPlusCfAckNoData(DataQosPlusCfAckNoData),
+}
+
+pub fn parse_ds_addresses(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool, receiver_address: &[u8; 6], 
+        transmitter_address: &[u8; 6]) -> Result<([u8; 6], [u8; 6], [u8; 6]), std::io::Error> {
+    match (to_ds, from_ds) {
+        (false, false) => {
+            let destination_address = receiver_address.clone();
+            let source_address = transmitter_address.clone();
+            let mut bssid = [0; 6];
+            try!(cursor.read_exact(&mut bssid));
+            Ok((source_address, destination_address, bssid))
+        },
+        (false, true) => {
+            let destination_address = receiver_address.clone();
+            let bssid = transmitter_address.clone();
+            let mut source_address = [0; 6];
+            try!(cursor.read_exact(&mut source_address));
+            Ok((source_address, destination_address, bssid))
+        },
+        (true, false) => {
+            let bssid = receiver_address.clone();
+            let source_address = transmitter_address.clone();
+            let mut destination_address = [0; 6];
+            try!(cursor.read_exact(&mut destination_address));
+            Ok((source_address, destination_address, bssid))
+        },
+        (true, true) => {
+            unimplemented!();
+        },
+    }
 }

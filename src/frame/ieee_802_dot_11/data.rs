@@ -95,7 +95,7 @@ pub struct DataQosData {
 
 impl DataQosData {
     pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosData, std::io::Error> {
-        let duration = cursor.get_u16::<LittleEndian>();
+        /*let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
         let mut destination_address = [0; 6];
@@ -121,7 +121,8 @@ impl DataQosData {
                 sequence_number: sequence_number,
                 frame_number: frame_number,
             }
-        )
+        )*/
+        unimplemented!();
     }
 }
 
