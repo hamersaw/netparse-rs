@@ -15,7 +15,7 @@ mod tests {
 
     #[test]
     fn test_wifi() {
-        let file = match File::open("examples/802.11-01.cap") {
+        let file = match File::open("examples/802.11-02.cap") {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
