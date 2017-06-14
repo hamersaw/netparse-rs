@@ -1,6 +1,7 @@
-use bytes::{Buf, BigEndian, LittleEndian};
+use bytes::{Buf, LittleEndian};
 
-use std;
+use error::NetparseError;
+
 use std::io::{Cursor, Read};
 
 #[derive(Debug)]
@@ -11,7 +12,7 @@ pub struct CtrlBlockAckRequest {
 }
 
 impl CtrlBlockAckRequest {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlBlockAckRequest, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlBlockAckRequest, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
         let mut receiver_address = [0; 6];
         try!(cursor.read_exact(&mut receiver_address));
@@ -37,7 +38,7 @@ pub struct CtrlBlockAck {
 }
 
 impl CtrlBlockAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlBlockAck, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlBlockAck, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
         let mut receiver_address = [0; 6];
         try!(cursor.read_exact(&mut receiver_address));
@@ -58,8 +59,8 @@ pub struct CtrlPowerSavePoll {
 }
 
 impl CtrlPowerSavePoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlPowerSavePoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<CtrlPowerSavePoll, NetparseError> {
+        Err(NetparseError::unimplemented("CtrlPowerSavePoll"))
     }
 }
 
@@ -71,7 +72,7 @@ pub struct CtrlRequestToSend {
 }
 
 impl CtrlRequestToSend  {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlRequestToSend, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlRequestToSend, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
         let mut receiver_address = [0; 6];
         try!(cursor.read_exact(&mut receiver_address));
@@ -96,7 +97,7 @@ pub struct CtrlClearToSend {
 }
 
 impl CtrlClearToSend {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlClearToSend, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlClearToSend, NetparseError> {
         let id_duration = cursor.get_u16::<LittleEndian>();
         let id = ((id_duration & 61440u16) >> 12) as u8;
         let duration = id_duration & 4095u16;
@@ -120,7 +121,7 @@ pub struct CtrlAck {
 }
 
 impl CtrlAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlAck, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlAck, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
         let mut receiver_address = [0; 6];
         try!(cursor.read_exact(&mut receiver_address));
@@ -139,8 +140,8 @@ pub struct CtrlCfEnd {
 }
 
 impl CtrlCfEnd {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlCfEnd, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<CtrlCfEnd, NetparseError> {
+        Err(NetparseError::unimplemented("CtrlCfEnd"))
     }
 }
 
@@ -149,7 +150,7 @@ pub struct CtrlCfEndPlusCfAck {
 }
 
 impl CtrlCfEndPlusCfAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<CtrlCfEndPlusCfAck, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<CtrlCfEndPlusCfAck, NetparseError> {
+        Err(NetparseError::unimplemented("CtrlCfEndPlusCfAck"))
     }
 }

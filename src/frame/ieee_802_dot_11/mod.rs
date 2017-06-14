@@ -1,9 +1,10 @@
-use bytes::{BigEndian, Buf, LittleEndian};
+use bytes::Buf;
 
-mod control;
-mod data;
-mod management;
+pub mod control;
+pub mod data;
+pub mod management;
 
+use error::NetparseError;
 use self::control::*;
 use self::data::*;
 use self::management::*;
@@ -28,7 +29,7 @@ pub struct IEEE802Dot11Frame {
 }
 
 impl IEEE802Dot11Frame {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<IEEE802Dot11Frame, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<IEEE802Dot11Frame, NetparseError> {
         //parse frame control
         let frame_control = cursor.get_u8();
         let protocol_version = frame_control & 3u8;
@@ -81,7 +82,7 @@ impl IEEE802Dot11Frame {
             (2, 12) => IEEE802Dot11FrameType::DataQosNull(try!(DataQosNull::parse(cursor, to_ds, from_ds))),
             (2, 14) => IEEE802Dot11FrameType::DataQosPlusCfPollNoData(try!(DataQosPlusCfPollNoData::parse(cursor))),
             (2, 15) => IEEE802Dot11FrameType::DataQosPlusCfAckNoData(try!(DataQosPlusCfAckNoData::parse(cursor))),
-            _ => return Err(std::io::Error::new(std::io::ErrorKind::Other, "malformed frame")),
+            _ => return Err(NetparseError::from("malformed frame")),
         };
 
         Ok(

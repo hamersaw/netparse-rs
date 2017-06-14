@@ -1,6 +1,7 @@
 use bytes::{Buf, LittleEndian};
 
-use std;
+use error::NetparseError;
+
 use std::io::{Cursor, Read};
 
 #[derive(Debug)]
@@ -16,7 +17,7 @@ pub struct Data {
 }
 
 impl Data {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<Data, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<Data, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -55,8 +56,8 @@ pub struct DataPlusCfAck {
 }
 
 impl DataPlusCfAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfAck, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfAck, NetparseError> {
+        Err(NetparseError::unimplemented("DataPlusCfAck"))
     }
 }
 
@@ -65,8 +66,8 @@ pub struct DataPlusCfPoll {
 }
 
 impl DataPlusCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataPlusCfPoll"))
     }
 }
 
@@ -75,8 +76,8 @@ pub struct DataPlusCfAckPlusCfPoll {
 }
 
 impl DataPlusCfAckPlusCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfAckPlusCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataPlusCfAckPlusCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataPlusCfAckPlusCfPoll"))
     }
 }
 
@@ -93,7 +94,7 @@ pub struct DataNull {
 }
 
 impl DataNull {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataNull, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataNull, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -132,8 +133,8 @@ pub struct DataCfAck {
 }
 
 impl DataCfAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataCfAck, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataCfAck, NetparseError> {
+        Err(NetparseError::unimplemented("DataCfAck"))
     }
 }
 
@@ -142,8 +143,8 @@ pub struct DataCfPoll {
 }
 
 impl DataCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataCfPoll"))
     }
 }
 
@@ -152,8 +153,8 @@ pub struct DataCfAckPlusCfPoll {
 }
 
 impl DataCfAckPlusCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataCfAckPlusCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataCfAckPlusCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataCtAckPlusCfPoll"))
     }
 }
 
@@ -170,7 +171,7 @@ pub struct DataQosData {
 }
 
 impl DataQosData {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataQosData, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataQosData, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -209,8 +210,8 @@ pub struct DataQosDataPlusCfAck {
 }
 
 impl DataQosDataPlusCfAck {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfAck, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfAck, NetparseError> {
+        Err(NetparseError::unimplemented("DataQosDataPlusCfAck"))
     }
 }
 
@@ -219,8 +220,8 @@ pub struct DataQosDataPlusCfPoll {
 }
 
 impl DataQosDataPlusCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataQosDataPlusCfPoll"))
     }
 }
 
@@ -229,8 +230,8 @@ pub struct DataQosDataPlusCfAckPlusCfPoll {
 }
 
 impl DataQosDataPlusCfAckPlusCfPoll {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfAckPlusCfPoll, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataQosDataPlusCfAckPlusCfPoll, NetparseError> {
+        Err(NetparseError::unimplemented("DataQosDataPlusCfAckPlusCfPoll"))
     }
 }
 
@@ -247,7 +248,7 @@ pub struct DataQosNull {
 }
 
 impl DataQosNull {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataQosNull, std::io::Error> {
+    pub fn parse(cursor: &mut Cursor<Vec<u8>>, to_ds: bool, from_ds: bool) -> Result<DataQosNull, NetparseError> {
         let duration = cursor.get_u16::<LittleEndian>();
 
         //parse addresses
@@ -286,8 +287,8 @@ pub struct DataQosPlusCfPollNoData {
 }
 
 impl DataQosPlusCfPollNoData {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosPlusCfPollNoData, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataQosPlusCfPollNoData, NetparseError> {
+        Err(NetparseError::unimplemented("DataQosPlusCfPollNoData"))
     }
 }
 
@@ -296,7 +297,7 @@ pub struct DataQosPlusCfAckNoData {
 }
 
 impl DataQosPlusCfAckNoData {
-    pub fn parse(cursor: &mut Cursor<Vec<u8>>) -> Result<DataQosPlusCfAckNoData, std::io::Error> {
-        unimplemented!();
+    pub fn parse(_: &mut Cursor<Vec<u8>>) -> Result<DataQosPlusCfAckNoData, NetparseError> {
+        Err(NetparseError::unimplemented("DataQosPlusCfAckNoData"))
     }
 }

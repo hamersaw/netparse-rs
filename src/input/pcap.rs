@@ -46,6 +46,7 @@ impl PcapIterator {
             return Ok(None);
         }
 
+        println!("HEADER: {:?}", pcap_header_bytes);
         let mut pcap_header_buf = pcap_header_bytes.into_buf();
         let timestamp_secs = pcap_header_buf.get_u32::<LittleEndian>();
         let timestamp_usecs = pcap_header_buf.get_u32::<LittleEndian>();
@@ -55,6 +56,8 @@ impl PcapIterator {
         //read in data
         let mut data_bytes = vec![0; included_length as usize];
         try!(self.input.read_exact(&mut data_bytes));
+
+        println!("DATA: {:?}", data_bytes);
 
         let mut cursor = Cursor::new(data_bytes);
         let frame_protocol = match self.network {

@@ -1,11 +1,11 @@
 extern crate bytes;
 
-use bytes::{BigEndian, Buf, LittleEndian};
+pub mod error;
+pub mod frame;
+//mod input;
 
-mod frame;
-mod input;
-
-pub use input::pcap::{PcapIterator, PcapBlock};
+//pub use input::pcap::{PcapIterator, PcapBlock};
+pub use error::NetparseError;
 
 #[cfg(test)]
 mod tests {
