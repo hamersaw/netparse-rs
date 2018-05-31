@@ -1,4 +1,4 @@
-use bytes::Buf;
+use bytes::{Buf, LittleEndian};
 
 pub mod control;
 pub mod data;
