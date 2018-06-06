@@ -33,7 +33,7 @@ pub struct RadiotapFrame {
     pub static_turbo: Option<bool>,
     pub half_rate_channel: Option<bool>,
     pub quarter_rate_channel: Option<bool>,
-    pub dbm_antenna_signal: Option<u8>,
+    pub dbm_antenna_signal: Option<i8>,
     pub antenna: Option<u8>,
     pub bad_plcp: Option<bool>,
     pub ieee802dot11frame: IEEE802Dot11Frame,
@@ -133,7 +133,7 @@ impl RadiotapFrame {
 
         // dbm_antenna_signal
         let dbm_antenna_signal = match flag_dbm_antenna_signal {
-            true => Some(cursor.get_u8()),
+            true => Some(cursor.get_i8()),
             false => None,
         };
 
